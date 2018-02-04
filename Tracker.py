@@ -35,7 +35,7 @@ import requests
 
 summonerName = "MVP%20Morty"
 region = "euw1"
-APIKey = "RGAPI-0b343d23-0774-4f42-b007-fbe647fbd74d"
+APIKey = "RGAPI-6175c67a-71f8-4a8c-9a62-c2221ef6b720"
 
 #----------------------------------------------------#
 #                                                    #
@@ -118,15 +118,9 @@ def getChampionId(lastMatchInfo, myParticipantId):
 #Entree : int championId pour chercher le champion dans la database, String patch, necessaire pour la request
 #Sortie : String champion joue
 def getChampion(championId, patch):
-    champion = None
-    URL = "https://"+region+".api.riotgames.com/lol/static-data/v3/champions?locale=fr_FR&version="+patch[0]+"&champListData=skins&dataById=false&api_key="+APIKey
+    URL = "https://"+region+".api.riotgames.com/lol/static-data/v3/champions/"+str(championId)+"?locale=fr_FR&api_key="+APIKey
     response = requests.get(URL).json()
-    championList = response["data"]
-    print(championList)
-    for i in range (0, 200):
-        print(championList[i]['id'])
-        if championList[i]['id'] == championId:
-            champion = championList[i]['name']
+    champion = response['name']
     return champion
 
 
@@ -144,22 +138,23 @@ accountId = summonerData['accountId']#OK
 
 #Potential need to draw a winrate by patch graph. Need to find the patch
 patch = requestPatch()
-print(patch)#OK
 
 #Need to find information about last match
 #Request recent match list, get the last one and store its ID. Then search by game ID to find more inforamtion
 recentMatchList = requestRecentMatchList(accountId) #OK
 lastMatchID = recentMatchList['matches'][0]['gameId'] #OK
 
-lastMatchInfo = requestMatch(lastMatchID) #WIP : Extraction des infos pertinentes pour analyse statistique
+lastMatchInfo = requestMatch(lastMatchID)
 
 #Besoin de parcourir les joueurs pour trouver le participantId, ainsi que celui du laner adverse
-myParticipantId = getParticipantId(accountId,lastMatchInfo)
-myRole = getMyRole(myParticipantId, lastMatchInfo)
-enemyParticipantId = getEnemy(lastMatchInfo, myParticipantId, myRole)
+myParticipantId = getParticipantId(accountId,lastMatchInfo) #OK#
+myRole = getMyRole(myParticipantId, lastMatchInfo) #OK
+enemyParticipantId = getEnemy(lastMatchInfo, myParticipantId, myRole) #OK
 
 #Recuperation des infos sur le matchup (champion joue, champion en face)
 myChampionId = getChampionId(lastMatchInfo, myParticipantId)
-myChampion = getChampion(myChampionId, patch) # <= Key Error : 0
+myChampion = getChampion(myChampionId, patch)
+enemyChampionId = getChampionId(lastMatchInfo, enemyParticipantId)
+enemyChampion = getChampion(enemyChampionId, patch)
 
-print(myChampion)
+print(myChampion + " VS " + enemyChampion)
