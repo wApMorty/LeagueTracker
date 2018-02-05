@@ -16,8 +16,7 @@ PART 2 : Automatiser l'execution du script avec detection de fin de game. (impos
 
 """
 Probleme 1: 'Rate limit exceeded' : Pas possible de s'en debarasser ? Request op.gg au lieu de Riot ?
-Probleme 2: Key Error : 0, probablement lie au probleme 1
-Probleme 3: L'API Riot est protegee par un systeme de cle dynamique qu'il faut recuperer toutes les 24h. Pas contournable ?
+Probleme 2: L'API Riot est protegee par un systeme de cle dynamique qu'il faut recuperer toutes les 24h. Pas contournable ?
 """
 #----------------------------------------------------#
 #                                                    #
@@ -35,7 +34,7 @@ import requests
 
 summonerName = "MVP%20Morty"
 region = "euw1"
-APIKey = "RGAPI-6175c67a-71f8-4a8c-9a62-c2221ef6b720"
+APIKey = "RGAPI-65fa3cd8-ef87-400d-ae91-889bafd4a480"
 
 #----------------------------------------------------#
 #                                                    #
