@@ -78,49 +78,6 @@ def requestPatch() :
     response = requests.get(URL)
     return response.json()[0]
 
-#Entree : int summonerId, lastMatchInfo car pas encore declare et pas envie de def la fonction plus tard.
-#Sortie : int participantId obtenu dans le lastMatchInfo
-def getParticipantId(summonerId, lastMatchInfo):
-    participantId = None
-    for i in range (0, 10):
-        if lastMatchInfo["participantIdentities"][i]["player"]["currentAccountId"] == summonerId :
-            participantId = i+1
-    return participantId
-
-#Entree : int participantID, lastMatchInfo car pas encore declare et pas envie de def la fonction plus tard
-#Sortie : Le role joue pendant la game.
-def getMyRole(participantID,lastMatchInfo):
-    role = None
-    for i in range (0, 10):
-        if lastMatchInfo['participants'][i]["participantId"] == participantID :
-            role = lastMatchInfo['participants'][i]["timeline"]["lane"]
-    return role
-
-#Entree : lastMatchInfo car pas encore declare, int myParticipantId pour eviter de s'auto selectionner, myRole pour chercher l'autre joueur avec le meme role
-#Sortie : le participantId du laner adverse
-def getEnemy(lastMatchInfo, myParticipantId, myRole):
-    enemyId = None
-    for i in range(0, 10):
-        if (lastMatchInfo['participants'][i]["timeline"]["lane"]==myRole and lastMatchInfo['participants'][i]["participantId"]!=myParticipantId) :
-            enemyId = lastMatchInfo['participants'][i]["participantId"]
-    return enemyId
-
-#Entree : lastMatchInfo car pas encore declare, int myParticipantId pour me retrouver dans la liste
-#Sortie : l'id du champion joue pendant la game
-def getChampionId(lastMatchInfo, myParticipantId):
-    championId = None
-    for i in range(0,10):
-        if lastMatchInfo['participants'][i]["participantId"] == myParticipantId:
-            championId = lastMatchInfo['participants'][i]["championId"]
-    return championId
-
-#Entree : int championId pour chercher le champion dans la database, String patch, necessaire pour la request
-#Sortie : String champion joue
-def getChampion(championId, patch):
-    URL = "https://"+region+".api.riotgames.com/lol/static-data/v3/champions/"+str(championId)+"?locale=fr_FR&api_key="+APIKey
-    response = requests.get(URL).json()
-    champion = response['name']
-    return champion
 
 
 #----------------------------------------------------#
@@ -145,15 +102,68 @@ lastMatchID = recentMatchList['matches'][0]['gameId'] #OK
 
 lastMatchInfo = requestMatch(lastMatchID)
 
+#Entree : int summonerId
+#Sortie : int participantId obtenu dans le lastMatchInfo
+def getParticipantId(summonerId):
+    participantId = None
+    for i in range (0, 10):
+        if lastMatchInfo["participantIdentities"][i]["player"]["currentAccountId"] == summonerId :
+            participantId = i+1
+    return participantId
+
+#Entree : int participantID
+#Sortie : Le role joue pendant la game.
+def getMyRole(participantID):
+    role = None
+    for i in range (0, 10):
+        if lastMatchInfo['participants'][i]["participantId"] == participantID :
+            role = lastMatchInfo['participants'][i]["timeline"]["lane"]
+    return role
+
+#Entree : int myParticipantId pour eviter de s'auto selectionner, myRole pour chercher l'autre joueur avec le meme role
+#Sortie : le participantId du laner adverse
+def getEnemy(myParticipantId, myRole):
+    enemyId = None
+    for i in range(0, 10):
+        if (lastMatchInfo['participants'][i]["timeline"]["lane"]==myRole and lastMatchInfo['participants'][i]["participantId"]!=myParticipantId) :
+            enemyId = lastMatchInfo['participants'][i]["participantId"]
+    return enemyId
+
+#Entree : int myParticipantId pour me retrouver dans la liste
+#Sortie : l'id du champion joue pendant la game
+def getChampionId(myParticipantId):
+    championId = None
+    for i in range(0,10):
+        if lastMatchInfo['participants'][i]["participantId"] == myParticipantId:
+            championId = lastMatchInfo['participants'][i]["championId"]
+    return championId
+
+#Entree : int championId pour chercher le champion dans la database
+#Sortie : String champion joue
+def getChampion(championId):
+    URL = "https://"+region+".api.riotgames.com/lol/static-data/v3/champions/"+str(championId)+"?locale=fr_FR&api_key="+APIKey
+    response = requests.get(URL).json()
+    champion = response['name']
+    return champion
+
+def getWinState(participantId):
+    for i in range (0,10):
+        if lastMatchInfo['participants'][i]['participantId']==participantId :
+            win = lastMatchInfo['participants'][i]['stats']['win']
+    return win
+
 #Besoin de parcourir les joueurs pour trouver le participantId, ainsi que celui du laner adverse
-myParticipantId = getParticipantId(accountId,lastMatchInfo) #OK#
-myRole = getMyRole(myParticipantId, lastMatchInfo) #OK
-enemyParticipantId = getEnemy(lastMatchInfo, myParticipantId, myRole) #OK
+myParticipantId = getParticipantId(accountId) #OK#
+myRole = getMyRole(myParticipantId) #OK
+enemyParticipantId = getEnemy(myParticipantId, myRole) #OK
 
 #Recuperation des infos sur le matchup (champion joue, champion en face)
-myChampionId = getChampionId(lastMatchInfo, myParticipantId)
-myChampion = getChampion(myChampionId, patch)
-enemyChampionId = getChampionId(lastMatchInfo, enemyParticipantId)
-enemyChampion = getChampion(enemyChampionId, patch)
+myChampionId = getChampionId(myParticipantId)
+myChampion = getChampion(myChampionId)
+enemyChampionId = getChampionId(enemyParticipantId)
+enemyChampion = getChampion(enemyChampionId)
 
-print(myChampion + " VS " + enemyChampion)
+#Recuperer l'etat (Win/Lose) de la game
+win = getWinState(myParticipantId)
+
+print(win)
